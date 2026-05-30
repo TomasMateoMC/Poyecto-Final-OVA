@@ -76,7 +76,7 @@ ova-teoria-colas-juegos/
 | Tipografía | Google Fonts — Outfit + JetBrains Mono |
 | Asistencia IA | Claude AI (Anthropic) — generación asistida de código |
 | Videos | YouTube — recursos audiovisuales en español |
-| Publicación | GitHub Pages |
+| Publicación | GitHub |
 
 ---
 
