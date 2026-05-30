@@ -60,7 +60,7 @@ ova-teoria-colas-juegos/
 | **Marco Teórico** | 5 pestañas: bases de colas, modelos M/M/1, bases de juegos, Equilibrio de Nash y tipos de juegos |
 | **Ejemplos Prácticos** | 6 casos reales: hospitales, redes, bancos, empresas, política internacional e IA |
 | **Ejercicios** | 4 ejercicios resueltos con solución desplegable paso a paso |
-| **Videos** | 3 videos académicos en español con miniaturas clicables |
+| **Videos** | 3 videos académicos clicables |
 | **Juego 1** | Trivia de Teoría de Colas — 6 preguntas de selección múltiple |
 | **Juego 2** | Trivia Verdadero/Falso de Teoría de Juegos — 6 afirmaciones |
 | **Quiz** | 8 preguntas evaluativas con puntaje automático y retroalimentación |
@@ -76,7 +76,7 @@ ova-teoria-colas-juegos/
 | Tipografía | Google Fonts — Outfit + JetBrains Mono |
 | Asistencia IA | Claude AI (Anthropic) — generación asistida de código |
 | Videos | YouTube — recursos audiovisuales en español |
-| Publicación | GitHub Pages / Netlify / Vercel |
+| Publicación | GitHub Pages |
 
 ---
 
