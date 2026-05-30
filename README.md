@@ -95,22 +95,11 @@ ova-teoria-colas-juegos/
 
 ## 📤 Publicación
 
-Para publicar la OVA en línea de forma gratuita, elige una de estas opciones:
-
 ### GitHub Pages
 1. Sube el repositorio a GitHub.
 2. Ve a **Settings → Pages**.
 3. En "Source" selecciona la rama `main` y la carpeta `/ (root)`.
 4. GitHub generará automáticamente el enlace público.
-
-### Netlify
-1. Arrastra la carpeta del proyecto a [netlify.com/drop](https://app.netlify.com/drop).
-2. Netlify genera el enlace en segundos.
-
-### Vercel
-1. Instala Vercel CLI: `npm i -g vercel`
-2. Ejecuta `vercel` dentro de la carpeta del proyecto.
-3. Sigue las instrucciones para obtener el enlace público.
 
 ---
 
