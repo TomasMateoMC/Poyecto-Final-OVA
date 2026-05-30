@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OVA · Teoría de Colas y de Juegos</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: #f5f4f0;
+  color: #1a1a1a;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* ── VARIABLES ── */
+:root {
+  --azul: #1a4fd6;
+  --azul-claro: #dce8ff;
+  --naranja: #e85c26;
+  --naranja-claro: #fdeee8;
+  --verde: #16a34a;
+  --verde-claro: #dcfce7;
+  --rojo: #dc2626;
+  --fondo: #f5f4f0;
+  --blanco: #ffffff;
+  --gris: #6b7280;
+  --borde: #e2e0da;
+  --texto: #1a1a1a;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--blanco);
+  border-bottom: 2px solid var(--texto);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 56px;
+}
+.nav-logo {
+  font-weight: 800; font-size: 1rem; letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.nav-logo span { background: var(--azul); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+.nav-links { display: flex; gap: 0.3rem; list-style: none; }
+.nav-links a {
+  font-size: 0.78rem; font-weight: 500; color: var(--gris);
+  text-decoration: none; padding: 0.35rem 0.7rem;
+  border-radius: 4px; transition: all .15s;
+}
+.nav-links a:hover { background: var(--azul); color: #fff; }
+
+/* ── HERO ── */
+#hero {
+  background: var(--azul);
+  color: #fff;
+  padding: 5rem 3rem 4rem;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute; right: -100px; top: -100px;
+  width: 500px; height: 500px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+#hero::after {
+  content: '';
+  position: absolute; right: 100px; bottom: -150px;
+  width: 300px; height: 300px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+.hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em;
+  padding: 0.3rem 0.8rem; border-radius: 20px; margin-bottom: 1.5rem;
+}
+.hero-title {
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.03em; max-width: 700px;
+  margin-bottom: 1.2rem;
+}
+.hero-title em { font-style: normal; color: #fde68a; }
+.hero-desc { font-size: 1.1rem; opacity: 0.85; max-width: 560px; margin-bottom: 2rem; font-weight: 300; }
+.hero-btns { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.btn {
+  display: inline-block; font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem; font-weight: 600; padding: 0.7rem 1.6rem;
+  border-radius: 8px; text-decoration: none; border: 2px solid transparent;
+  cursor: pointer; transition: all .2s;
+}
+.btn-white { background: #fff; color: var(--azul); }
+.btn-white:hover { background: #f0f7ff; }
+.btn-outline-white { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); }
+.btn-outline-white:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+.btn-blue { background: var(--azul); color: #fff; border-color: var(--azul); }
+.btn-blue:hover { background: #1440b0; }
+.btn-outline { background: transparent; color: var(--texto); border-color: var(--borde); }
+.btn-outline:hover { border-color: var(--azul); color: var(--azul); }
+
+/* ── SECTIONS ── */
+section { padding: 4.5rem 3rem; }
+section:nth-child(even) { background: var(--blanco); }
+.sec-tag {
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--azul); margin-bottom: 0.5rem;
+}
+.sec-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  font-weight: 800; letter-spacing: -0.02em;
+  margin-bottom: 0.8rem; line-height: 1.1;
+}
+.sec-desc { color: var(--gris); max-width: 600px; margin-bottom: 2.5rem; font-size: 1rem; }
+
+/* ── CARDS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; }
+.card {
+  background: var(--blanco);
+  border: 1.5px solid var(--borde);
+  border-radius: 12px; padding: 1.5rem;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.card:hover { border-color: var(--azul); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,79,214,0.1); }
+.card-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+.card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+.card p { font-size: 0.88rem; color: var(--gris); }
+.card.blue { background: var(--azul-claro); border-color: #b3ccff; }
+.card.orange { background: var(--naranja-claro); border-color: #f5c4ae; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 2px solid var(--borde); padding-bottom: 0; }
+.tab-btn {
+  font-size: 0.82rem; font-weight: 600; padding: 0.55rem 1.1rem;
+  border-radius: 8px 8px 0 0; border: none; cursor: pointer;
+  background: transparent; color: var(--gris); transition: all .15s;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.tab-btn.active { color: var(--azul); border-bottom-color: var(--azul); background: var(--azul-claro); }
+.tab-btn:hover:not(.active) { color: var(--texto); background: var(--fondo); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── THEORY BLOCK ── */
+.theory-box {
+  background: var(--fondo); border: 1.5px solid var(--borde);
+  border-radius: 12px; padding: 1.8rem;
+}
+.theory-box h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--azul); }
+.theory-box h4 { font-size: 0.95rem; font-weight: 700; margin: 1.2rem 0 0.5rem; color: var(--naranja); }
+.theory-box p { color: #444; margin-bottom: 0.8rem; font-size: 0.93rem; }
+.theory-box ul { padding-left: 1.4rem; color: #444; font-size: 0.93rem; }
+.theory-box li { margin-bottom: 0.4rem; }
+
+.formula {
+  background: var(--blanco); border: 1.5px solid var(--azul);
+  border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
+  font-family: var(--mono); font-size: 0.9rem;
+}
+.formula .label { font-size: 0.65rem; color: var(--azul); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; font-family: 'Outfit', sans-serif; font-weight: 600; }
+.formula .eq { color: var(--texto); font-weight: 600; }
+
+table.mtx { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1rem 0; font-family: var(--mono); }
+table.mtx th, table.mtx td { border: 1.5px solid var(--borde); padding: 0.6rem 0.9rem; text-align: center; }
+table.mtx th { background: var(--azul-claro); color: var(--azul); font-weight: 600; }
+table.mtx .nash { background: var(--verde-claro); color: var(--verde); font-weight: 700; }
+
+/* ── EXAMPLES ── */
+.ex-card {
+  background: var(--blanco); border: 1.5px solid var(--borde);
+  border-radius: 12px; padding: 1.4rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+.ex-card:hover { border-color: var(--naranja); box-shadow: 0 4px 16px rgba(232,92,38,0.08); }
+.ex-card .ico { font-size: 1.8rem; margin-bottom: 0.6rem; }
+.ex-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+.ex-card p { font-size: 0.85rem; color: var(--gris); }
+
+/* ── EJERCICIOS ── */
+.ej-block {
+  border: 1.5px solid var(--borde); border-radius: 12px;
+  overflow: hidden; margin-bottom: 1.2rem;
+}
+.ej-head {
+  background: var(--fondo); padding: 1rem 1.4rem;
+  border-bottom: 1.5px solid var(--borde);
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+}
+.ej-head h4 { font-size: 0.95rem; font-weight: 700; }
+.ej-body { padding: 1.2rem 1.4rem; }
+.ej-body p { font-size: 0.92rem; color: #333; margin-bottom: 0.8rem; }
+.toggle-btn {
+  font-size: 0.75rem; font-weight: 600; padding: 0.35rem 0.9rem;
+  border-radius: 6px; border: 1.5px solid var(--azul);
+  color: var(--azul); background: transparent; cursor: pointer;
+  transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.toggle-btn:hover { background: var(--azul); color: #fff; }
+.sol {
+  display: none; margin-top: 0.8rem;
+  background: var(--azul-claro); border-radius: 8px;
+  padding: 1rem 1.2rem; font-family: var(--mono); font-size: 0.82rem;
+  border-left: 4px solid var(--azul); color: #1a1a1a; line-height: 1.7;
+}
+.sol.show { display: block; }
+
+/* ── VIDEOS ── */
+.vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+.vid-card { border-radius: 12px; overflow: hidden; border: 1.5px solid var(--borde); background: var(--blanco); }
+.vid-frame { width: 100%; aspect-ratio: 16/9; background: #000; }
+.vid-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+.vid-info { padding: 1rem 1.2rem; }
+.vid-info h4 { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.3rem; }
+.vid-info p { font-size: 0.82rem; color: var(--gris); }
+
+/* ── JUEGOS ── */
+#juegos { background: var(--fondo); }
+.games-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.game-box {
+  background: var(--blanco); border: 1.5px solid var(--borde);
+  border-radius: 14px; overflow: hidden;
+}
+.game-top {
+  background: var(--azul); color: #fff;
+  padding: 1rem 1.4rem;
+}
+.game-top h3 { font-size: 1rem; font-weight: 700; }
+.game-top p { font-size: 0.78rem; opacity: 0.8; margin-top: 0.2rem; }
+.game-inner { padding: 1.4rem; }
+
+/* JUEGO 1 — COLAS */
+.slider-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.sl-group { flex: 1; min-width: 120px; }
+.sl-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--gris); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.sl-group input[type=range] { width: 100%; accent-color: var(--azul); cursor: pointer; }
+.sl-group .val { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--azul); }
+
+.q-vis {
+  min-height: 64px; background: var(--fondo); border-radius: 10px;
+  border: 1.5px dashed var(--borde);
+  display: flex; align-items: center; padding: 0.8rem;
+  gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; position: relative;
+}
+.q-person {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; background: var(--azul-claro);
+  border: 2px solid #b3ccff; transition: all .3s;
+  flex-shrink: 0;
+}
+.q-person.served { background: var(--verde-claro); border-color: #86efac; }
+.q-server {
+  margin-left: auto; width: 44px; height: 44px; border-radius: 8px;
+  background: var(--azul); display: flex; align-items: center;
+  justify-content: center; font-size: 1.2rem; color: #fff; flex-shrink: 0;
+}
+
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.6rem; margin-bottom: 1rem; }
+.stat { background: var(--fondo); border-radius: 8px; padding: 0.6rem; text-align: center; border: 1.5px solid var(--borde); }
+.stat .sv { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--azul); }
+.stat .sl { font-size: 0.62rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.alert-red { background: #fee2e2; border: 1.5px solid #fca5a5; color: var(--rojo); border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.8rem; display: none; }
+.sim-btns { display: flex; gap: 0.6rem; }
+.sim-info { font-size: 0.75rem; color: var(--gris); margin-top: 0.8rem; font-family: var(--mono); }
+.sim-info span { font-weight: 700; }
+
+/* JUEGO 2 — DILEMA */
+.pd-intro { font-size: 0.85rem; color: var(--gris); margin-bottom: 1rem; }
+.pd-matrix { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.82rem; font-family: var(--mono); }
+.pd-matrix th, .pd-matrix td { border: 1.5px solid var(--borde); padding: 0.55rem 0.7rem; text-align: center; }
+.pd-matrix th { background: var(--fondo); font-family: 'Outfit', sans-serif; font-size: 0.78rem; color: var(--gris); font-weight: 600; }
+.pd-matrix .active-cell { background: #fef9c3; border-color: #fbbf24; font-weight: 700; color: #92400e; }
+
+.pd-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+.pd-btn {
+  padding: 0.9rem; border-radius: 10px; border: 2px solid var(--borde);
+  background: var(--fondo); cursor: pointer; font-size: 0.88rem;
+  font-weight: 600; font-family: 'Outfit', sans-serif; transition: all .2s;
+  text-align: center;
+}
+.pd-btn:hover:not(:disabled) { border-color: var(--azul); background: var(--azul-claro); color: var(--azul); }
+.pd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pd-btn.chosen-green { border-color: var(--verde); background: var(--verde-claro); color: var(--verde); }
+.pd-btn.chosen-red { border-color: var(--rojo); background: #fee2e2; color: var(--rojo); }
+
+.pd-result {
+  display: none; border-radius: 10px; padding: 1rem;
+  margin-bottom: 0.8rem; border: 1.5px solid;
+}
+.pd-result.show { display: block; animation: fadeIn .3s ease; }
+.pd-result.coop-coop { background: var(--verde-claro); border-color: #86efac; }
+.pd-result.betray-betray { background: #fee2e2; border-color: #fca5a5; }
+.pd-result.mixed { background: #fef9c3; border-color: #fbbf24; }
+.pd-result h5 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+.pd-result p { font-size: 0.8rem; }
+.pd-scores { display: flex; gap: 0.6rem; margin-top: 0.6rem; }
+.pd-score { flex:1; background: rgba(255,255,255,0.7); border-radius: 6px; padding: 0.4rem; text-align: center; font-size: 0.78rem; font-family: var(--mono); }
+.pd-score .big { font-size: 1.3rem; font-weight: 700; display: block; }
+
+.pd-log { background: var(--fondo); border-radius: 8px; padding: 0.7rem; max-height: 100px; overflow-y: auto; font-size: 0.75rem; font-family: var(--mono); color: var(--gris); border: 1.5px solid var(--borde); margin-bottom: 0.8rem; }
+.pd-log .entry { padding: 0.15rem 0; border-bottom: 1px solid var(--borde); }
+.pd-round-info { font-size: 0.78rem; color: var(--gris); font-family: var(--mono); margin-bottom: 0.5rem; }
+.pd-round-info span { font-weight: 700; color: var(--texto); }
+.pd-gameover { background: var(--azul-claro); border: 1.5px solid var(--azul); border-radius: 10px; padding: 1rem; text-align: center; display: none; margin-bottom: 0.8rem; }
+.pd-gameover h5 { font-size: 1rem; font-weight: 800; color: var(--azul); }
+.pd-gameover p { font-size: 0.8rem; color: var(--gris); margin-top: 0.3rem; }
+
+/* ── QUIZ ── */
+#quiz { background: var(--blanco); }
+.quiz-wrap { max-width: 680px; }
+.progress-bar { height: 6px; background: var(--borde); border-radius: 3px; margin-bottom: 2rem; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--azul); border-radius: 3px; transition: width .4s ease; }
+.q-block { display: none; }
+.q-block.active { display: block; animation: fadeIn .3s ease; }
+.q-num { font-family: var(--mono); font-size: 0.7rem; color: var(--gris); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+.q-text { font-size: 1.05rem; font-weight: 700; margin-bottom: 1.2rem; }
+.opts { display: flex; flex-direction: column; gap: 0.6rem; }
+.opt {
+  padding: 0.85rem 1.1rem; border-radius: 10px;
+  border: 1.5px solid var(--borde); background: var(--fondo);
+  cursor: pointer; font-size: 0.9rem; transition: all .15s;
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.opt:hover { border-color: var(--azul); background: var(--azul-claro); }
+.opt.correct { border-color: var(--verde); background: var(--verde-claro); }
+.opt.wrong { border-color: var(--rojo); background: #fee2e2; }
+.opt-ltr {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--blanco); border: 1.5px solid var(--borde);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 0.72rem; flex-shrink: 0; font-weight: 600;
+}
+.q-fb { display: none; margin-top: 0.8rem; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.85rem; }
+.q-fb.show { display: block; animation: fadeIn .2s ease; }
+.q-fb.ok { background: var(--verde-claro); border: 1.5px solid #86efac; color: #15803d; }
+.q-fb.fail { background: #fee2e2; border: 1.5px solid #fca5a5; color: var(--rojo); }
+.q-nav { margin-top: 1.2rem; display: flex; justify-content: flex-end; }
+.score-box { display: none; text-align: center; padding: 3rem 1rem; }
+.score-box.show { display: block; animation: fadeIn .4s ease; }
+.score-big { font-size: 4.5rem; font-weight: 800; color: var(--azul); letter-spacing: -0.03em; }
+.score-msg { color: var(--gris); font-size: 1rem; margin-top: 0.4rem; }
+.score-pct { font-family: var(--mono); font-size: 0.8rem; color: var(--gris); margin-top: 0.3rem; }
+
+/* ── CREDITOS ── */
+#creditos { background: var(--fondo); }
+.cred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+.author-box {
+  background: var(--blanco); border: 1.5px solid var(--borde);
+  border-radius: 12px; padding: 1.4rem;
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+}
+.av { width: 52px; height: 52px; border-radius: 50%; background: var(--azul); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+.av-info h5 { font-weight: 700; font-size: 0.95rem; }
+.av-info p { font-size: 0.8rem; color: var(--gris); }
+.ref-list { list-style: none; }
+.ref-list li { padding: 0.5rem 0; border-bottom: 1px solid var(--borde); font-size: 0.85rem; color: #444; }
+.ref-list li::before { content: "↗ "; color: var(--azul); font-weight: 700; }
+.tool-list { list-style: none; }
+.tool-list li { padding: 0.4rem 0; font-size: 0.85rem; color: #444; border-bottom: 1px solid var(--borde); }
+.tool-list li::before { content: "✓ "; color: var(--verde); font-weight: 700; }
+.cred-h { font-size: 0.85rem; font-weight: 700; color: var(--texto); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+footer { background: var(--azul); color: rgba(255,255,255,0.7); text-align: center; padding: 1.5rem; font-size: 0.78rem; }
+
+@media (max-width: 768px) {
+  section { padding: 3rem 1.4rem; }
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  .grid-2, .grid-3, .games-wrap, .cred-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .pd-choices { grid-template-columns: 1fr; }
+  #hero { padding: 3.5rem 1.5rem 3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">OVA · TGS</div>
+  <ul class="nav-links">
+    <li><a href="#contexto">Contexto</a></li>
+    <li><a href="#teoria">Teoría</a></li>
+    <li><a href="#ejemplos">Ejemplos</a></li>
+    <li><a href="#ejercicios">Ejercicios</a></li>
+    <li><a href="#videos">Videos</a></li>
+    <li><a href="#juegos">Juegos</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#creditos">Créditos</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge">Teoría General de Sistemas</div>
+  <h1 class="hero-title">Teoría de <em>Colas</em> y de <em>Juegos</em></h1>
+  <p class="hero-desc">Modelos matemáticos para optimizar tiempos de espera y tomar decisiones estratégicas en sistemas complejos.</p>
+  <div class="hero-btns">
+    <a href="#teoria" class="btn btn-white">Comenzar →</a>
+    <a href="#juegos" class="btn btn-outline-white">Ir a los Juegos</a>
+  </div>
+</section>
+
+<!-- CONTEXTO -->
+<section id="contexto">
+  <div class="sec-tag">01 · Contextualización</div>
+  <h2 class="sec-title">¿Por qué importan estas teorías?</h2>
+  <p class="sec-desc">La Teoría de Colas y la Teoría de Juegos permiten modelar y resolver problemas reales que van desde hospitales hasta negociaciones internacionales.</p>
+
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card blue">
+      <div class="card-icon">📐</div>
+      <h4>Teoría de Colas</h4>
+      <p>Modela sistemas de espera. Estudia llegadas, servidores y tiempos para optimizar recursos y minimizar demoras. Creada por <strong>Agner Erlang</strong> en 1909.</p>
+    </div>
+    <div class="card orange">
+      <div class="card-icon">♟️</div>
+      <h4>Teoría de Juegos</h4>
+      <p>Estudia decisiones estratégicas entre agentes racionales. El resultado de cada uno depende de lo que hacen los demás. Formalizada por <strong>Von Neumann</strong> en 1944.</p>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">🏥</div>
+      <h4>Salud</h4>
+      <p>Hospitales usan colas para dimensionar personal y minimizar esperas de pacientes.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h4>Tecnología</h4>
+      <p>Redes de internet y sistemas de IA usan estas teorías para gestionar tráfico y decisiones.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏛️</div>
+      <h4>Política y Economía</h4>
+      <p>Negociaciones y estrategias empresariales se modelan con Teoría de Juegos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TEORIA -->
+<section id="teoria">
+  <div class="sec-tag">02 · Marco Teórico</div>
+  <h2 class="sec-title">Fundamentos Conceptuales</h2>
+  <p class="sec-desc">Navega entre las pestañas para explorar los conceptos, modelos y fórmulas clave.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="tab('colas1',this)">Colas: Bases</button>
+    <button class="tab-btn" onclick="tab('colas2',this)">Modelos M/M/1</button>
+    <button class="tab-btn" onclick="tab('juegos1',this)">Juegos: Bases</button>
+    <button class="tab-btn" onclick="tab('nash',this)">Equilibrio de Nash</button>
+    <button class="tab-btn" onclick="tab('tipos',this)">Tipos de Juegos</button>
+  </div>
+
+  <div class="tab-pane active" id="tab-colas1">
+    <div class="theory-box">
+      <h3>Componentes de un sistema de colas</h3>
+      <ul>
+        <li><strong>λ (lambda):</strong> tasa de llegada — cuántos clientes llegan por unidad de tiempo.</li>
+        <li><strong>μ (mu):</strong> tasa de servicio — cuántos clientes atiende un servidor por unidad de tiempo.</li>
+        <li><strong>c:</strong> número de servidores en paralelo.</li>
+        <li><strong>Disciplina:</strong> orden de atención — FIFO (primero en llegar, primero en salir), LIFO, prioridades.</li>
+        <li><strong>Capacidad K:</strong> máximo de clientes simultáneos permitidos.</li>
+      </ul>
+      <div class="formula">
+        <div class="label">Factor de utilización ρ (rho)</div>
+        <div class="eq">ρ = λ / (c · μ) &nbsp;&nbsp; — Estabilidad: ρ &lt; 1</div>
+      </div>
+      <div class="formula">
+        <div class="label">Notación de Kendall</div>
+        <div class="eq">M/M/1 → Llegadas Markovianas / Servicio Exponencial / 1 servidor</div>
+      </div>
+      <p>Si <strong>ρ ≥ 1</strong> la cola crece indefinidamente. Si <strong>ρ &lt; 1</strong> el sistema es estable y converge a un estado de equilibrio.</p>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-colas2">
+    <div class="theory-box">
+      <h3>Modelo M/M/1 — Fórmulas clave</h3>
+      <div class="formula"><div class="label">Clientes promedio en el sistema (L)</div><div class="eq">L = ρ / (1 − ρ)</div></div>
+      <div class="formula"><div class="label">Clientes promedio esperando en cola (Lq)</div><div class="eq">Lq = ρ² / (1 − ρ)</div></div>
+      <div class="formula"><div class="label">Tiempo promedio en cola (Wq)</div><div class="eq">Wq = ρ / (μ − λ) = Lq / λ</div></div>
+      <div class="formula"><div class="label">Ley de Little — válida para cualquier sistema estable</div><div class="eq">L = λ · W &nbsp;&nbsp;&nbsp; Lq = λ · Wq</div></div>
+      <h4>Ejemplo rápido</h4>
+      <p>λ = 10 clientes/h, μ = 15 clientes/h → ρ = 10/15 = <strong>0.67</strong> → L = 0.67/0.33 = <strong>2 clientes</strong> → Wq = 0.67/(15−10) = <strong>8 min</strong></p>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-juegos1">
+    <div class="theory-box">
+      <h3>Elementos de un juego</h3>
+      <ul>
+        <li><strong>Jugadores:</strong> agentes que toman decisiones (personas, empresas, países).</li>
+        <li><strong>Estrategias:</strong> conjunto de acciones posibles para cada jugador.</li>
+        <li><strong>Pagos (payoffs):</strong> resultado que obtiene cada jugador según las estrategias elegidas.</li>
+        <li><strong>Información:</strong> lo que cada jugador conoce sobre el juego y los demás.</li>
+        <li><strong>Racionalidad:</strong> cada jugador busca maximizar su propio beneficio.</li>
+      </ul>
+      <h4>El Dilema del Prisionero</h4>
+      <table class="mtx">
+        <thead><tr><th></th><th>B Coopera</th><th>B Traiciona</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A Coopera</strong></td><td>(-1, -1)</td><td>(-10, 0)</td></tr>
+          <tr><td><strong>A Traiciona</strong></td><td>(0, -10)</td><td class="nash">(-5, -5) ← Nash</td></tr>
+        </tbody>
+      </table>
+      <p>Ambos traicionan aunque juntos estarían mejor cooperando. Ilustra la tensión entre <strong>racionalidad individual</strong> y <strong>bienestar colectivo</strong>.</p>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-nash">
+    <div class="theory-box">
+      <h3>Equilibrio de Nash</h3>
+      <p>Perfil de estrategias donde <strong>ningún jugador puede mejorar su pago cambiando unilateralmente</strong> su estrategia. John Nash demostró en 1950 que todo juego finito tiene al menos un equilibrio.</p>
+      <div class="formula"><div class="label">Condición de Nash</div><div class="eq">uᵢ(s*ᵢ, s*₋ᵢ) ≥ uᵢ(sᵢ, s*₋ᵢ) &nbsp; para todo sᵢ y todo jugador i</div></div>
+      <h4>Batalla de los Sexos — dos equilibrios</h4>
+      <table class="mtx">
+        <thead><tr><th></th><th>B → Fútbol</th><th>B → Ballet</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A → Fútbol</strong></td><td class="nash">(2, 1) ✓</td><td>(0, 0)</td></tr>
+          <tr><td><strong>A → Ballet</strong></td><td>(0, 0)</td><td class="nash">(1, 2) ✓</td></tr>
+        </tbody>
+      </table>
+      <p>Existen dos equilibrios en estrategias puras y uno en <strong>estrategias mixtas</strong> (aleatorizar decisiones).</p>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-tipos">
+    <div class="theory-box">
+      <h3>Clasificación de Juegos</h3>
+      <table class="mtx" style="font-family:'Outfit',sans-serif;">
+        <thead><tr><th>Criterio</th><th>Tipo A</th><th>Tipo B</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Suma</strong></td><td>Suma cero (lo que uno gana el otro pierde)</td><td>Suma no nula (pueden ganar ambos)</td></tr>
+          <tr><td><strong>Información</strong></td><td>Perfecta (todos conocen la historia)</td><td>Imperfecta (hay incertidumbre)</td></tr>
+          <tr><td><strong>Tiempo</strong></td><td>Estático (decisiones simultáneas)</td><td>Dinámico (secuencial)</td></tr>
+          <tr><td><strong>Cooperación</strong></td><td>Cooperativo (acuerdos vinculantes)</td><td>No cooperativo</td></tr>
+        </tbody>
+      </table>
+      <div class="formula"><div class="label">Teorema Minimax — von Neumann (juegos suma cero)</div><div class="eq">max min uᵢⱼ = min max uᵢⱼ = v* (valor del juego)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EJEMPLOS -->
+<section id="ejemplos">
+  <div class="sec-tag">03 · Casos Prácticos</div>
+  <h2 class="sec-title">Aplicaciones en el Mundo Real</h2>
+  <p class="sec-desc">Estas teorías se usan todos los días en industrias, gobiernos y tecnología.</p>
+  <div class="grid-3">
+    <div class="ex-card"><div class="ico">🏥</div><h4>Urgencias hospitalarias</h4><p>Modelos M/M/c para decidir cuántos médicos necesita cada turno y minimizar tiempos de espera.</p></div>
+    <div class="ex-card"><div class="ico">📡</div><h4>Redes de internet</h4><p>Los paquetes forman colas en routers. Teoría de Colas define el tamaño de buffers y prioridades (QoS).</p></div>
+    <div class="ex-card"><div class="ico">🏦</div><h4>Cajeros de banco</h4><p>Se calcula el número óptimo de cajeros según la hora para que nadie espere más de 5 minutos.</p></div>
+    <div class="ex-card"><div class="ico">📦</div><h4>Logística y comercio</h4><p>Centros de distribución usan modelos de colas para organizar la carga, descarga y almacenamiento.</p></div>
+    <div class="ex-card"><div class="ico">🌍</div><h4>Negociaciones internacionales</h4><p>La Guerra Fría se analizó con Teoría de Juegos. La estrategia tit-for-tat explica cómo surgió la cooperación.</p></div>
+    <div class="ex-card"><div class="ico">🤖</div><h4>Inteligencia Artificial</h4><p>AlphaGo y agentes en subastas online se diseñan con Teoría de Juegos para entornos multiagente.</p></div>
+  </div>
+</section>
+
+<!-- EJERCICIOS -->
+<section id="ejercicios">
+  <div class="sec-tag">04 · Ejercicios</div>
+  <h2 class="sec-title">Practica con Retroalimentación</h2>
+  <p class="sec-desc">Intenta resolver cada problema y luego revela la solución paso a paso.</p>
+
+  <div class="ej-block">
+    <div class="ej-head">
+      <h4>Ejercicio 1 — Modelo M/M/1</h4>
+      <button class="toggle-btn" onclick="toggleSol(this)">Ver solución</button>
+    </div>
+    <div class="ej-body">
+      <p>Un banco tiene un cajero. Llegan <strong>λ = 10 clientes/hora</strong> y el cajero atiende <strong>μ = 15 clientes/hora</strong>. Calcula: ρ, L (clientes en sistema) y Wq (tiempo en cola).</p>
+      <div class="sol">
+ρ = λ/μ = 10/15 = 0.667  →  Sistema estable ✓ (ρ &lt; 1)
+
+L  = ρ/(1−ρ) = 0.667/0.333 = 2.0 clientes en promedio
+Wq = ρ/(μ−λ) = 0.667/5   = 0.133 h = 8 minutos en cola
+
+→ En promedio hay 2 personas en el sistema y cada una espera 8 min.
+      </div>
+    </div>
+  </div>
+
+  <div class="ej-block">
+    <div class="ej-head">
+      <h4>Ejercicio 2 — Ley de Little</h4>
+      <button class="toggle-btn" onclick="toggleSol(this)">Ver solución</button>
+    </div>
+    <div class="ej-body">
+      <p>En el área de check-in de un aeropuerto hay en promedio <strong>30 pasajeros</strong> y cada uno permanece <strong>15 minutos</strong>. ¿Cuál es la tasa de llegada λ?</p>
+      <div class="sol">
+Ley de Little: L = λ · W  →  λ = L / W
+
+W = 15 min = 0.25 h
+λ = 30 / 0.25 = 120 pasajeros/hora (2 por minuto)
+
+→ Llegan 120 pasajeros por hora. Esta ley es válida para cualquier sistema estable sin importar la distribución.
+      </div>
+    </div>
+  </div>
+
+  <div class="ej-block">
+    <div class="ej-head">
+      <h4>Ejercicio 3 — Estrategia dominante</h4>
+      <button class="toggle-btn" onclick="toggleSol(this)">Ver solución</button>
+    </div>
+    <div class="ej-body">
+      <p>Dos empresas A y B eligen precio <strong>Alto o Bajo</strong>. Ganancias (A, B) en millones: (Alto,Alto)=(5,5) · (Alto,Bajo)=(1,8) · (Bajo,Alto)=(8,1) · (Bajo,Bajo)=(3,3). ¿Cuál es el Equilibrio de Nash?</p>
+      <div class="sol">
+Perspectiva de A:
+  • Si B elige Alto  → A prefiere Bajo  (8 &gt; 5)
+  • Si B elige Bajo  → A prefiere Bajo  (3 &gt; 1)
+  Estrategia dominante de A: Bajo
+
+Por simetría, estrategia dominante de B: también Bajo.
+
+Equilibrio de Nash: (Bajo, Bajo) → pagos (3, 3)
+Aunque (Alto, Alto) daría (5, 5) a ambos, la lógica racional los lleva al Dilema del Prisionero.
+      </div>
+    </div>
+  </div>
+
+  <div class="ej-block">
+    <div class="ej-head">
+      <h4>Ejercicio 4 — Identificar Nash en estrategias puras</h4>
+      <button class="toggle-btn" onclick="toggleSol(this)">Ver solución</button>
+    </div>
+    <div class="ej-body">
+      <p>Matriz de pagos (Fila, Columna): (F1,C1)=(4,3) · (F1,C2)=(2,5) · (F2,C1)=(1,2) · (F2,C2)=(5,1). ¿Existe equilibrio de Nash en estrategias puras?</p>
+      <div class="sol">
+Mejor respuesta de Fila:
+  Si C1 → F1 prefiere F1 (4 &gt; 1)   Si C2 → F2 prefiere F2 (5 &gt; 2)
+
+Mejor respuesta de Columna:
+  Si F1 → C2 prefiere C2 (5 &gt; 3)   Si F2 → C1 prefiere C1 (2 &gt; 1)
+
+Nash requiere que AMBOS tengan su mejor respuesta en la misma celda.
+Ninguna celda cumple simultáneamente las dos condiciones.
+
+→ NO existe Equilibrio de Nash en estrategias puras.
+   (Existe en estrategias mixtas — los jugadores deben aleatorizar.)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEOS -->
+<section id="videos">
+  <div class="sec-tag">05 · Videos</div>
+  <h2 class="sec-title">Recursos Audiovisuales</h2>
+  <p class="sec-desc">Videos en español verificados. Haz clic en la miniatura para abrirlos en YouTube.</p>
+  <div class="vid-grid">
+
+    <div class="vid-card" onclick="window.open('https://www.youtube.com/watch?v=CWsfLD8ZvAk','_blank')" style="cursor:pointer;">
+      <div class="vid-frame" style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="https://img.youtube.com/vi/CWsfLD8ZvAk/hqdefault.jpg" alt="Teoría de colas introducción" style="width:100%;height:100%;object-fit:cover;opacity:0.85;display:block;">
+        <div style="position:absolute;width:56px;height:56px;background:#ff0000;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:1.3rem;margin-left:5px;">▶</span>
+        </div>
+      </div>
+      <div class="vid-info">
+        <h4>Teoría de Colas o Líneas de Espera — Introducción</h4>
+        <p>Elementos básicos de las líneas de espera, componentes y estructura de los sistemas de colas. En español.</p>
+      </div>
+    </div>
+
+    <div class="vid-card" onclick="window.open('https://www.youtube.com/watch?v=t3x2KinUqAA','_blank')" style="cursor:pointer;">
+      <div class="vid-frame" style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="https://img.youtube.com/vi/t3x2KinUqAA/hqdefault.jpg" alt="Ejercicio resuelto MM1" style="width:100%;height:100%;object-fit:cover;opacity:0.85;display:block;">
+        <div style="position:absolute;width:56px;height:56px;background:#ff0000;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:1.3rem;margin-left:5px;">▶</span>
+        </div>
+      </div>
+      <div class="vid-info">
+        <h4>Explicación Teoría de Colas y Ejercicio Resuelto M/M/1</h4>
+        <p>Lógica del modelo de un servidor, fórmulas de L, Lq, W y Wq con ejercicio resuelto paso a paso.</p>
+      </div>
+    </div>
+
+    <div class="vid-card" onclick="window.open('https://www.youtube.com/watch?v=Pit9ONsr62E','_blank')" style="cursor:pointer;">
+      <div class="vid-frame" style="position:relative;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="https://img.youtube.com/vi/Pit9ONsr62E/hqdefault.jpg" alt="Dilema del prisionero Nash" style="width:100%;height:100%;object-fit:cover;opacity:0.85;display:block;">
+        <div style="position:absolute;width:56px;height:56px;background:#ff0000;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:1.3rem;margin-left:5px;">▶</span>
+        </div>
+      </div>
+      <div class="vid-info">
+        <h4>Dilema del Prisionero — Teoría de Juegos y Equilibrio de Nash</h4>
+        <p>Explicación del dilema del prisionero, estrategias dominantes y equilibrio de Nash con ejemplos reales.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- JUEGOS -->
+<section id="juegos">
+  <div class="sec-tag">06 · Actividades Interactivas</div>
+  <h2 class="sec-title">Aprende Jugando</h2>
+  <p class="sec-desc">Dos trivias temáticas. Responde cada pregunta y ve tu puntaje al final.</p>
+
+  <div class="games-wrap">
+
+
+    <!-- JUEGO 1: TRIVIA DE COLAS -->
+    <div class="game-box">
+      <div class="game-top">
+        <h3>📐 Trivia: Teoría de Colas</h3>
+        <p>6 preguntas · Elige la respuesta correcta</p>
+      </div>
+      <div class="game-inner" id="g1-wrap">
+
+        <!-- Barra progreso -->
+        <div style="background:var(--borde);border-radius:4px;height:6px;margin-bottom:1.2rem;overflow:hidden;">
+          <div id="g1-bar" style="height:100%;background:var(--azul);border-radius:4px;width:0%;transition:width .4s;"></div>
+        </div>
+
+        <!-- Pregunta activa -->
+        <div id="g1-qnum" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--gris);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem;">Pregunta 1 / 6</div>
+        <div id="g1-qtxt" style="font-size:1rem;font-weight:700;margin-bottom:1rem;min-height:48px;"></div>
+        <div id="g1-opts" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;"></div>
+        <div id="g1-fb" style="display:none;border-radius:8px;padding:0.7rem 1rem;font-size:0.85rem;margin-bottom:1rem;"></div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button id="g1-next" class="btn btn-blue" onclick="g1Next()" style="display:none;">Siguiente →</button>
+        </div>
+
+        <!-- Resultado final -->
+        <div id="g1-final" style="display:none;text-align:center;padding:1.5rem 0;">
+          <div style="font-size:3rem;font-weight:800;color:var(--azul);" id="g1-score-txt">0/6</div>
+          <div style="color:var(--gris);margin-top:0.4rem;" id="g1-score-msg"></div>
+          <button class="btn btn-blue" style="margin-top:1.2rem;" onclick="g1Restart()">↺ Jugar de nuevo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JUEGO 2: TRIVIA DE JUEGOS -->
+    <div class="game-box">
+      <div class="game-top">
+        <h3>♟️ Trivia: Teoría de Juegos</h3>
+        <p>6 preguntas · ¿Verdadero o Falso?</p>
+      </div>
+      <div class="game-inner" id="g2-wrap">
+
+        <!-- Barra progreso -->
+        <div style="background:var(--borde);border-radius:4px;height:6px;margin-bottom:1.2rem;overflow:hidden;">
+          <div id="g2-bar" style="height:100%;background:var(--naranja);border-radius:4px;width:0%;transition:width .4s;"></div>
+        </div>
+
+        <div id="g2-qnum" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--gris);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem;">Pregunta 1 / 6</div>
+        <div id="g2-qtxt" style="font-size:1rem;font-weight:700;margin-bottom:1.2rem;min-height:60px;line-height:1.4;"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
+          <button id="g2-true" onclick="g2Answer(true)"
+            style="padding:1rem;border-radius:10px;border:2px solid var(--verde);background:var(--verde-claro);color:var(--verde);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;">
+            ✓ Verdadero
+          </button>
+          <button id="g2-false" onclick="g2Answer(false)"
+            style="padding:1rem;border-radius:10px;border:2px solid #fca5a5;background:#fee2e2;color:var(--rojo);font-size:1rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;">
+            ✗ Falso
+          </button>
+        </div>
+
+        <div id="g2-fb" style="display:none;border-radius:8px;padding:0.8rem 1rem;font-size:0.85rem;margin-bottom:1rem;border:1.5px solid;"></div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button id="g2-next" class="btn btn-blue" onclick="g2Next()" style="display:none;background:var(--naranja);border-color:var(--naranja);">Siguiente →</button>
+        </div>
+
+        <!-- Resultado final -->
+        <div id="g2-final" style="display:none;text-align:center;padding:1.5rem 0;">
+          <div style="font-size:3rem;font-weight:800;color:var(--naranja);" id="g2-score-txt">0/6</div>
+          <div style="color:var(--gris);margin-top:0.4rem;" id="g2-score-msg"></div>
+          <button onclick="g2Restart()" style="margin-top:1.2rem;padding:0.7rem 1.6rem;border-radius:8px;border:2px solid var(--naranja);background:var(--naranja);color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">↺ Jugar de nuevo</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-tag">07 · Evaluación</div>
+  <h2 class="sec-title">Quiz de Conocimientos</h2>
+  <p class="sec-desc">8 preguntas con puntaje automático y retroalimentación inmediata.</p>
+  <div class="quiz-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+    <!-- Q1 -->
+    <div class="q-block active" id="q1">
+      <div class="q-num">Pregunta 1 / 8</div>
+      <div class="q-text">¿Qué representa λ (lambda) en un sistema de colas?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q1')"><div class="opt-ltr">A</div>La tasa de servicio (clientes atendidos por unidad de tiempo)</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q1')"><div class="opt-ltr">B</div>La tasa de llegada (clientes que llegan por unidad de tiempo)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q1')"><div class="opt-ltr">C</div>El número de servidores disponibles</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q1')"><div class="opt-ltr">D</div>El factor de utilización del sistema</div>
+      </div>
+      <div class="q-fb" id="fb1"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt1" onclick="qNext(1)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-block" id="q2">
+      <div class="q-num">Pregunta 2 / 8</div>
+      <div class="q-text">¿Cuál es la condición para que un sistema M/M/1 sea estable?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q2')"><div class="opt-ltr">A</div>ρ = 1 (utilización al 100%)</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q2')"><div class="opt-ltr">B</div>ρ &lt; 1 (la tasa de llegada es menor que la de servicio)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q2')"><div class="opt-ltr">C</div>ρ &gt; 1 (la demanda supera la capacidad)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q2')"><div class="opt-ltr">D</div>λ = μ (llegadas igual a servicio)</div>
+      </div>
+      <div class="q-fb" id="fb2"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt2" onclick="qNext(2)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-block" id="q3">
+      <div class="q-num">Pregunta 3 / 8</div>
+      <div class="q-text">En la Ley de Little L = λ · W, ¿qué es L?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q3')"><div class="opt-ltr">A</div>El tiempo promedio de espera en cola</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q3')"><div class="opt-ltr">B</div>La tasa de llegada de clientes</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q3')"><div class="opt-ltr">C</div>El número promedio de clientes en el sistema</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q3')"><div class="opt-ltr">D</div>La capacidad máxima del sistema</div>
+      </div>
+      <div class="q-fb" id="fb3"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt3" onclick="qNext(3)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-block" id="q4">
+      <div class="q-num">Pregunta 4 / 8</div>
+      <div class="q-text">¿Quiénes formalizaron la Teoría de Juegos en el libro de 1944?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q4')"><div class="opt-ltr">A</div>John Nash y Albert Einstein</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q4')"><div class="opt-ltr">B</div>Agner Erlang y Claude Shannon</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q4')"><div class="opt-ltr">C</div>John von Neumann y Oskar Morgenstern</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q4')"><div class="opt-ltr">D</div>Kenneth Arrow y Paul Samuelson</div>
+      </div>
+      <div class="q-fb" id="fb4"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt4" onclick="qNext(4)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-block" id="q5">
+      <div class="q-num">Pregunta 5 / 8</div>
+      <div class="q-text">En el Dilema del Prisionero, ¿cuál es el Equilibrio de Nash?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q5')"><div class="opt-ltr">A</div>Ambos cooperan (mejor resultado colectivo)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q5')"><div class="opt-ltr">B</div>Uno coopera y el otro traiciona</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q5')"><div class="opt-ltr">C</div>Ambos traicionan (resultado subóptimo para ambos)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q5')"><div class="opt-ltr">D</div>El resultado es impredecible</div>
+      </div>
+      <div class="q-fb" id="fb5"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt5" onclick="qNext(5)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-block" id="q6">
+      <div class="q-num">Pregunta 6 / 8</div>
+      <div class="q-text">Sistema M/M/1: λ = 20/h, μ = 25/h. ¿Cuántos clientes hay en promedio en el sistema?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q6')"><div class="opt-ltr">A</div>0.8 clientes</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q6')"><div class="opt-ltr">B</div>2 clientes</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q6')"><div class="opt-ltr">C</div>4 clientes (ρ=0.8 → L=0.8/0.2=4)</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q6')"><div class="opt-ltr">D</div>20 clientes</div>
+      </div>
+      <div class="q-fb" id="fb6"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt6" onclick="qNext(6)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-block" id="q7">
+      <div class="q-num">Pregunta 7 / 8</div>
+      <div class="q-text">¿Qué es un Equilibrio de Nash?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q7')"><div class="opt-ltr">A</div>Estrategia donde todos obtienen el máximo beneficio posible</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q7')"><div class="opt-ltr">B</div>Perfil de estrategias donde nadie mejora cambiando solo su estrategia</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q7')"><div class="opt-ltr">C</div>Acuerdo cooperativo entre todos los jugadores</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q7')"><div class="opt-ltr">D</div>Estrategia que minimiza pérdidas en suma cero</div>
+      </div>
+      <div class="q-fb" id="fb7"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt7" onclick="qNext(7)" style="display:none">Siguiente →</button></div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-block" id="q8">
+      <div class="q-num">Pregunta 8 / 8</div>
+      <div class="q-text">¿Qué significa M/M/c en la notación de Kendall?</div>
+      <div class="opts">
+        <div class="opt" onclick="qAnswer(this,'wrong','q8')"><div class="opt-ltr">A</div>Múltiples llegadas, Múltiples salidas, c capacidad</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q8')"><div class="opt-ltr">B</div>Llegadas Manuales, Servicio Manual, c servidores</div>
+        <div class="opt" onclick="qAnswer(this,'correct','q8')"><div class="opt-ltr">C</div>Llegadas Markovianas (Poisson), Servicio exponencial, c servidores</div>
+        <div class="opt" onclick="qAnswer(this,'wrong','q8')"><div class="opt-ltr">D</div>Modelo Mixto con c canales de entrada</div>
+      </div>
+      <div class="q-fb" id="fb8"></div>
+      <div class="q-nav"><button class="btn btn-blue" id="nxt8" onclick="qNext(8)" style="display:none">Ver resultado</button></div>
+    </div>
+
+    <!-- SCORE -->
+    <div class="score-box" id="score-box">
+      <div class="score-big" id="score-num">0/8</div>
+      <div class="score-msg" id="score-msg"></div>
+      <div class="score-pct" id="score-pct"></div>
+      <button class="btn btn-blue" style="margin-top:1.5rem;" onclick="qRestart()">↺ Repetir quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- CREDITOS -->
+<section id="creditos">
+  <div class="sec-tag">08 · Créditos</div>
+  <h2 class="sec-title">Autoría y Referencias</h2>
+  <div class="cred-grid">
+    <div>
+      <div class="author-box">
+        <div class="av">TM</div>
+        <div class="av-info">
+          <h5>Monsalve Caballero Tomas Mateo</h5>
+          <p>Ingeniería de Sistemas · Universidad Simón Bolívar</p>
+          <p>Teoría General de Sistemas · 2025</p>
+        </div>
+      </div>
+      <p class="cred-h">Herramientas</p>
+      <ul class="tool-list">
+        <li>HTML5, CSS3, JavaScript (vanilla)</li>
+        <li>Claude AI — asistencia en código</li>
+        <li>Google Fonts — Outfit + JetBrains Mono</li>
+        <li>YouTube — videos académicos</li>
+      </ul>
+    </div>
+    <div>
+      <p class="cred-h">Bibliografía</p>
+      <ul class="ref-list">
+        <li>Taha, H. A. (2012). <em>Investigación de Operaciones</em> (9.ª ed.). México: Pearson Educación.</li>
+        <li>Hillier, F. S. y Lieberman, G. J. (2010). <em>Introducción a la Investigación de Operaciones</em> (9.ª ed.). México: McGraw-Hill.</li>
+        <li>Von Neumann, J. y Morgenstern, O. (2007). <em>Teoría de Juegos y Comportamiento Económico</em>. Madrid: Minerva Ediciones. (Obra original publicada en 1944).</li>
+        <li>Nash, J. F. (1950). Equilibrium points in n-person games. <em>Proceedings of the National Academy of Sciences</em>, 36(1), 48–49.</li>
+        <li>Gibbons, R. (1993). <em>Un primer curso de teoría de juegos</em>. Barcelona: Antoni Bosch Editor.</li>
+        <li>García Sabater, J. P. (2015). <em>Teoría de Colas: Modelos básicos</em>. Valencia: Universitat Politècnica de València. Disponible en: riunet.upv.es</li>
+        <li>Osorio Gómez, J. C. (2009). <em>Introducción a la Teoría de Colas</em>. Cali: Universidad del Valle.</li>
+      </ul>
+
+      <p class="cred-h" style="margin-top:1.5rem;">Referencias de Videos</p>
+      <ul class="ref-list">
+        <li>[Canal de YouTube]. (2022, 4 de enero). <em>Teoría de colas o lineas de espera 1. Introducción</em> [Video]. YouTube. <a href="https://www.youtube.com/watch?v=CWsfLD8ZvAk" target="_blank" style="color:var(--azul);word-break:break-all;">youtube.com/watch?v=CWsfLD8ZvAk</a></li>
+        <li>[Canal de YouTube]. (2013, 10 de diciembre). <em>Explicación de teoría de colas y ejercicio resuelto MM1</em> [Video]. YouTube. <a href="https://www.youtube.com/watch?v=t3x2KinUqAA" target="_blank" style="color:var(--azul);word-break:break-all;">youtube.com/watch?v=t3x2KinUqAA</a></li>
+        <li>[Canal de YouTube]. (2020, 21 de noviembre). <em>Dilema del prisionero teoria de juegos | Que es el equilibrio de Nash</em> [Video]. YouTube. <a href="https://www.youtube.com/watch?v=Pit9ONsr62E" target="_blank" style="color:var(--azul);word-break:break-all;">youtube.com/watch?v=Pit9ONsr62E</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>OVA · Teoría de Colas y de Juegos · Teoría General de Sistemas · Universidad Simón Bolívar · 2025</footer>
+
+<script>
+// TABS
+function tab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// EJERCICIOS
+function toggleSol(btn) {
+  const sol = btn.closest('.ej-block').querySelector('.sol');
+  const open = sol.classList.toggle('show');
+  btn.textContent = open ? 'Ocultar' : 'Ver solución';
+}
+
+// ═══ JUEGO 1: TRIVIA DE COLAS ═══
+const G1_QS = [
+  { q:'¿Qué letra griega representa la tasa de llegada en un sistema de colas?', opts:['μ (mu)','λ (lambda)','ρ (rho)','σ (sigma)'], ans:1, fb:'λ (lambda) es la tasa de llegada. μ es la tasa de servicio y ρ es el factor de utilización.' },
+  { q:'¿Qué significa que ρ = 0.8 en un sistema M/M/1?', opts:['El sistema está al 80% de su capacidad','Hay 8 clientes en cola','El sistema está inestable','Hay 80 servidores'], ans:0, fb:'ρ = 0.8 indica que el servidor está ocupado el 80% del tiempo. Como ρ < 1, el sistema es estable.' },
+  { q:'Sistema M/M/1 con λ=5 y μ=10. ¿Cuántos clientes hay en promedio en el sistema?', opts:['0.5 clientes','1 cliente','2 clientes','5 clientes'], ans:1, fb:'ρ = 5/10 = 0.5. L = ρ/(1−ρ) = 0.5/0.5 = 1 cliente en promedio.' },
+  { q:'¿Qué establece la Ley de Little?', opts:['L = λ · μ','L = λ · W','W = λ · L','μ = λ · ρ'], ans:1, fb:'La Ley de Little: L = λ · W. El número de clientes en el sistema = tasa de llegada × tiempo promedio en el sistema.' },
+  { q:'En la notación M/M/3, ¿qué representa el 3?', opts:['3 tipos de clientes','3 colas distintas','3 servidores en paralelo','Capacidad máxima 3'], ans:2, fb:'El tercer parámetro de Kendall es el número de servidores. M/M/3 tiene 3 servidores en paralelo.' },
+  { q:'Si λ=8 y μ=6 en M/M/1, ¿qué ocurre?', opts:['Cola estable en 8 clientes','Sistema estable','Sistema inestable porque ρ>1','Tiempo de espera cero'], ans:2, fb:'ρ = 8/6 = 1.33 > 1. El sistema es inestable: la cola crece sin límite.' }
+];
+let g1Idx=0, g1Score=0, g1Answered=false;
+
+function g1Render() {
+  const q = G1_QS[g1Idx];
+  document.getElementById('g1-qnum').textContent = 'Pregunta ' + (g1Idx+1) + ' / ' + G1_QS.length;
+  document.getElementById('g1-bar').style.width = (g1Idx/G1_QS.length*100) + '%';
+  document.getElementById('g1-qtxt').textContent = q.q;
+  document.getElementById('g1-fb').style.display = 'none';
+  document.getElementById('g1-next').style.display = 'none';
+  g1Answered = false;
+  const optsEl = document.getElementById('g1-opts');
+  optsEl.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = opt;
+    btn.style.cssText = 'width:100%;padding:0.75rem 1rem;border-radius:8px;border:1.5px solid var(--borde);background:var(--fondo);font-size:0.88rem;font-family:Outfit,sans-serif;cursor:pointer;text-align:left;transition:all .15s;font-weight:500;';
+    btn.onmouseover = () => { if(!g1Answered) btn.style.borderColor='var(--azul)'; };
+    btn.onmouseout  = () => { if(!g1Answered) btn.style.borderColor='var(--borde)'; };
+    btn.onclick = () => g1Answer(i, btn);
+    optsEl.appendChild(btn);
+  });
+}
+
+function g1Answer(i, btn) {
+  if (g1Answered) return;
+  g1Answered = true;
+  const q = G1_QS[g1Idx];
+  const correct = i === q.ans;
+  if (correct) g1Score++;
+  document.getElementById('g1-opts').querySelectorAll('button').forEach((b, idx) => {
+    b.style.pointerEvents = 'none';
+    if (idx === q.ans) { b.style.background='var(--verde-claro)'; b.style.borderColor='var(--verde)'; b.style.color='var(--verde)'; }
+    else if (idx === i && !correct) { b.style.background='#fee2e2'; b.style.borderColor='var(--rojo)'; b.style.color='var(--rojo)'; }
+  });
+  const fb = document.getElementById('g1-fb');
+  fb.textContent = (correct ? '✓ Correcto. ' : '✗ Incorrecto. ') + q.fb;
+  fb.style.cssText = 'display:block;border-radius:8px;padding:0.7rem 1rem;font-size:0.85rem;margin-bottom:1rem;background:' + (correct?'var(--verde-claro)':'#fee2e2') + ';border:1.5px solid ' + (correct?'var(--verde)':'var(--rojo)') + ';color:' + (correct?'var(--verde)':'var(--rojo)') + ';';
+  document.getElementById('g1-next').style.display = 'inline-block';
+}
+
+function g1Next() {
+  g1Idx++;
+  if (g1Idx < G1_QS.length) { g1Render(); }
+  else {
+    document.getElementById('g1-bar').style.width = '100%';
+    document.getElementById('g1-qnum').style.display='none';
+    document.getElementById('g1-qtxt').style.display='none';
+    document.getElementById('g1-opts').style.display='none';
+    document.getElementById('g1-fb').style.display='none';
+    document.getElementById('g1-next').style.display='none';
+    document.getElementById('g1-final').style.display='block';
+    document.getElementById('g1-score-txt').textContent = g1Score + '/' + G1_QS.length;
+    const p = Math.round(g1Score/G1_QS.length*100);
+    document.getElementById('g1-score-msg').textContent = p>=83?'🏆 ¡Excelente! Dominas la Teoría de Colas.':p>=50?'👍 Bien. Repasa las fórmulas clave.':'📚 Sigue estudiando. Vuelve a la sección de teoría.';
+  }
+}
+
+function g1Restart() {
+  g1Idx=0; g1Score=0; g1Answered=false;
+  ['g1-qnum','g1-qtxt','g1-opts'].forEach(id => document.getElementById(id).style.display='');
+  document.getElementById('g1-final').style.display='none';
+  g1Render();
+}
+
+g1Render();
+
+// ═══ JUEGO 2: VERDADERO / FALSO DE JUEGOS ═══
+const G2_QS = [
+  { q:'"En el Equilibrio de Nash, ningún jugador puede mejorar su resultado cambiando solo su propia estrategia."', ans:true,  fb:'Exactamente. Es la definición del Equilibrio de Nash: cada jugador juega su mejor respuesta dado lo que hacen los demás.' },
+  { q:'"En el Dilema del Prisionero, la estrategia óptima para ambos jugadores es cooperar."', ans:false, fb:'Falso. Aunque cooperar da un mejor resultado colectivo, la estrategia dominante racionalmente es traicionar.' },
+  { q:'"Todo juego finito tiene al menos un Equilibrio de Nash, en estrategias puras o mixtas."', ans:true,  fb:'Verdadero. Este es el famoso teorema de Nash (1950), que le valió el Premio Nobel de Economía en 1994.' },
+  { q:'"En un juego de suma cero, si un jugador gana 5 puntos, el otro también puede ganar 5 puntos."', ans:false, fb:'Falso. En suma cero lo que gana uno lo pierde el otro exactamente. La suma de pagos siempre es cero.' },
+  { q:'"La Teoría de Juegos solo sirve para analizar competencia, no cooperación."', ans:false, fb:'Falso. La Teoría de Juegos analiza tanto competencia como cooperación, negociaciones y juegos repetidos.' },
+  { q:'"Von Neumann y Morgenstern publicaron el libro fundacional de la Teoría de Juegos en 1944."', ans:true,  fb:'Correcto. "Theory of Games and Economic Behavior" (1944) formalizó la disciplina.' }
+];
+let g2Idx=0, g2Score=0, g2Answered=false;
+
+function g2Render() {
+  const q = G2_QS[g2Idx];
+  document.getElementById('g2-qnum').textContent = 'Pregunta ' + (g2Idx+1) + ' / ' + G2_QS.length;
+  document.getElementById('g2-bar').style.width = (g2Idx/G2_QS.length*100) + '%';
+  document.getElementById('g2-qtxt').textContent = q.q;
+  document.getElementById('g2-fb').style.display='none';
+  document.getElementById('g2-next').style.display='none';
+  document.getElementById('g2-true').disabled=false;
+  document.getElementById('g2-false').disabled=false;
+  document.getElementById('g2-true').style.opacity='1';
+  document.getElementById('g2-false').style.opacity='1';
+  g2Answered=false;
+}
+
+function g2Answer(chosen) {
+  if (g2Answered) return;
+  g2Answered=true;
+  const q = G2_QS[g2Idx];
+  const correct = chosen === q.ans;
+  if (correct) g2Score++;
+  document.getElementById('g2-true').disabled=true;
+  document.getElementById('g2-false').disabled=true;
+  if (!correct) document.getElementById(chosen ? 'g2-true' : 'g2-false').style.opacity='0.4';
+  const fb = document.getElementById('g2-fb');
+  fb.textContent = (correct ? '✓ Correcto. ' : '✗ Incorrecto. ') + q.fb;
+  fb.style.cssText = 'display:block;border-radius:8px;padding:0.8rem 1rem;font-size:0.85rem;margin-bottom:1rem;border:1.5px solid;background:' + (correct?'var(--verde-claro)':'#fee2e2') + ';border-color:' + (correct?'var(--verde)':'var(--rojo)') + ';color:' + (correct?'var(--verde)':'var(--rojo)') + ';';
+  document.getElementById('g2-next').style.display='inline-block';
+}
+
+function g2Next() {
+  g2Idx++;
+  if (g2Idx < G2_QS.length) { g2Render(); }
+  else {
+    document.getElementById('g2-bar').style.width='100%';
+    ['g2-qnum','g2-qtxt','g2-true','g2-false','g2-fb','g2-next'].forEach(id => document.getElementById(id).style.display='none');
+    document.getElementById('g2-final').style.display='block';
+    document.getElementById('g2-score-txt').textContent = g2Score+'/'+G2_QS.length;
+    const p=Math.round(g2Score/G2_QS.length*100);
+    document.getElementById('g2-score-msg').textContent = p>=83?'🏆 ¡Excelente! Dominas la Teoría de Juegos.':p>=50?'👍 Bien. Repasa los conceptos de Nash.':'📚 Sigue estudiando. Vuelve a la sección de teoría.';
+  }
+}
+
+function g2Restart() {
+  g2Idx=0; g2Score=0; g2Answered=false;
+  ['g2-qnum','g2-qtxt','g2-true','g2-false'].forEach(id => document.getElementById(id).style.display='');
+  document.getElementById('g2-final').style.display='none';
+  g2Render();
+}
+
+g2Render();
+
+// ═══ QUIZ ═══
+let qScore=0, qDone={};
+const qFB = {
+  q1:{correct:'✓ Correcto. λ es la tasa de llegada.',wrong:'✗ Incorrecto. λ es la tasa de llegada; μ es la de servicio.'},
+  q2:{correct:'✓ Correcto. ρ < 1 garantiza que el sistema no colapse.',wrong:'✗ Se necesita ρ < 1 para estabilidad.'},
+  q3:{correct:'✓ Correcto. L = número promedio de clientes en el sistema.',wrong:'✗ L es el promedio de clientes en el sistema, no el tiempo.'},
+  q4:{correct:'✓ Correcto. Von Neumann y Morgenstern, 1944.',wrong:'✗ Fueron John von Neumann y Oskar Morgenstern (1944).'},
+  q5:{correct:'✓ Correcto. Nash del Dilema = ambos traicionan.',wrong:'✗ La lógica racional lleva a ambos a traicionar.'},
+  q6:{correct:'✓ ρ=0.8 → L=0.8/0.2=4 clientes.',wrong:'✗ ρ=20/25=0.8, L=ρ/(1-ρ)=0.8/0.2=4.'},
+  q7:{correct:'✓ Correcto. Nash = nadie mejora cambiando solo su estrategia.',wrong:'✗ Nash no es máximo colectivo, es estabilidad individual.'},
+  q8:{correct:'✓ M=Markoviano (Poisson/exponencial), c=servidores en paralelo.',wrong:'✗ M = distribución Markoviana (Poisson/exponencial).'}
+};
+
+function qAnswer(el, result, qId) {
+  if (qDone[qId]) return;
+  qDone[qId] = true;
+  el.parentElement.querySelectorAll('.opt').forEach(o => o.style.pointerEvents='none');
+  el.classList.add(result);
+  const fb = document.getElementById('fb'+qId.slice(1));
+  fb.textContent = qFB[qId][result];
+  fb.className = 'q-fb show ' + (result==='correct' ? 'ok' : 'fail');
+  if (result==='correct') qScore++;
+  const n = parseInt(qId.slice(1));
+  document.getElementById('nxt'+n).style.display='inline-block';
+  document.getElementById('prog').style.width = (n/8*100)+'%';
+}
+function qNext(n) {
+  document.getElementById('q'+n).classList.remove('active');
+  if (n < 8) document.getElementById('q'+(n+1)).classList.add('active');
+  else { document.getElementById('prog').style.width='100%'; qShowScore(); }
+}
+function qShowScore() {
+  document.querySelectorAll('.q-block').forEach(q => q.style.display='none');
+  const pct = Math.round(qScore/8*100);
+  document.getElementById('score-num').textContent = qScore+'/8';
+  document.getElementById('score-pct').textContent = pct+'% de aciertos';
+  document.getElementById('score-msg').textContent =
+    pct>=87?'🏆 ¡Excelente! Dominas el tema.':pct>=62?'👍 Buen trabajo. Repasa lo que fallaste.':'📚 Necesitas repasar. Vuelve a la sección de teoría.';
+  document.getElementById('score-box').classList.add('show');
+}
+function qRestart() {
+  qScore=0; qDone={};
+  document.getElementById('score-box').classList.remove('show');
+  document.querySelectorAll('.q-block').forEach((q,i) => {
+    q.style.display=''; q.classList.toggle('active', i===0);
+    q.querySelectorAll('.opt').forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents=''; });
+    q.querySelectorAll('.q-fb').forEach(f => { f.className='q-fb'; f.textContent=''; });
+    q.querySelectorAll('button[id^="nxt"]').forEach(b => b.style.display='none');
+  });
+  document.getElementById('prog').style.width='0%';
+}
+</script>
+</body>
+</html>
