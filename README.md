@@ -24,12 +24,6 @@ La OVA está construida como una página web interactiva en HTML5, CSS3 y JavaSc
 
 ---
 
-## 🌐 Enlace público
-
-> 🔗 **[Insertar aquí el enlace de GitHub Pages / Netlify / Vercel una vez publicado]**
-
----
-
 ## 🎯 Objetivos
 
 ### General
